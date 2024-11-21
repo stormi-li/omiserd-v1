@@ -26,9 +26,12 @@ type Register struct {
 }
 
 func (register *Register) Close() {
-	register.close <- struct{}{}
-	time.Sleep(100 * time.Millisecond)
-	<-register.close
+	if register.close!=nil{
+		register.close <- struct{}{}
+		time.Sleep(100 * time.Millisecond)
+		<-register.close
+	}
+
 	register.redisClient.Close()
 	register.omipcClient.Close()
 	log.Println("register server for", register.ServerName+"["+register.Address+"]", "is closed")
