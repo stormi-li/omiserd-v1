@@ -22,11 +22,16 @@ type Register struct {
 	ctx             context.Context
 	registerHandler func(register *Register)
 	messageHandler  func(command, message string, register *Register)
+	close           chan struct{}
 }
 
 func (register *Register) Close() {
+	register.close <- struct{}{}
+	time.Sleep(100 * time.Millisecond)
+	<-register.close
 	register.redisClient.Close()
 	register.omipcClient.Close()
+	log.Println("register server for", register.ServerName+"["+register.Address+"]", "is closed")
 }
 
 func (register *Register) SetRegisterHandler(handler func(register *Register)) {
@@ -64,7 +69,7 @@ func (register *Register) registerHandle() {
 
 func (register *Register) messageHandle() {
 	channel := register.namespace + register.ServerName + namespace_separator + register.Address
-	register.omipcClient.Listen(channel, func(message string) bool {
+	register.close = register.omipcClient.Listen(channel, func(message string) bool {
 		command, message := splitMessage(message, namespace_separator)
 		if command == Command_update_weight {
 			weight, err := strconv.Atoi(message)

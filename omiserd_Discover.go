@@ -101,14 +101,16 @@ func (discover *Discover) DiscoverAndListen(serverName string, connectHandler fu
 		}
 		if discover.reconnectStrategy(address, data, err) {
 			address, data = discover.discoverStrategy(serverName, discover)
-			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println(r)
-					}
+			if address != "" {
+				go func() {
+					defer func() {
+						if r := recover(); r != nil {
+							log.Println(r)
+						}
+					}()
+					connectHandler(address, data)
 				}()
-				connectHandler(address, data)
-			}()
+			}
 		}
 		time.Sleep(config_expire_time / 2)
 	}
