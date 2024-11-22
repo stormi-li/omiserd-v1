@@ -3,6 +3,7 @@ package omiserd
 import (
 	"context"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +27,7 @@ type Register struct {
 }
 
 func (register *Register) Close() {
-	if register.close!=nil{
+	if register.close != nil {
 		register.close <- struct{}{}
 		time.Sleep(100 * time.Millisecond)
 		<-register.close
@@ -62,6 +63,8 @@ func (register *Register) RegisterAndListen(weight int, handler func(port string
 func (register *Register) registerHandle() {
 	for {
 		register.Data["weight"] = strconv.Itoa(register.Weight)
+		register.Data["processid"] = strconv.Itoa(os.Getpid())
+		register.Data["host"], _ = os.Hostname()
 		register.registerHandler(register)
 		jsonStrData := mapToJsonStr(register.Data)
 		key := register.namespace + register.ServerName + namespace_separator + register.Address
