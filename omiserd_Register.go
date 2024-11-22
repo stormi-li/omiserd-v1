@@ -63,7 +63,7 @@ func (register *Register) RegisterAndListen(weight int, handler func(port string
 func (register *Register) registerHandle() {
 	for {
 		register.Data["weight"] = strconv.Itoa(register.Weight)
-		register.Data["processid"] = strconv.Itoa(os.Getpid())
+		register.Data["process_id"] = strconv.Itoa(os.Getpid())
 		register.Data["host"], _ = os.Hostname()
 		register.registerHandler(register)
 		jsonStrData := mapToJsonStr(register.Data)
