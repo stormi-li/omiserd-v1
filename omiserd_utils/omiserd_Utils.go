@@ -1,4 +1,4 @@
-package omiserd
+package omiutils
 
 import (
 	"context"
@@ -8,27 +8,27 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func mapToJsonStr(data map[string]string) string {
+func MapToJsonStr(data map[string]string) string {
 	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
 	return string(jsonStr)
 }
 
-func jsonStrToMap(jsonStr string) map[string]string {
+func JsonStrToMap(jsonStr string) map[string]string {
 	var dataMap map[string]string
 	json.Unmarshal([]byte(jsonStr), &dataMap)
 	return dataMap
 }
 
-func getKeysByNamespace(redisClient *redis.Client, namespace string) []string {
+func GetKeysByNamespace(redisClient *redis.Client, prefix string) []string {
 	var keys []string
 	cursor := uint64(0)
 	for {
-		res, newCursor, err := redisClient.Scan(context.Background(), cursor, namespace+"*", 0).Result()
+		res, newCursor, err := redisClient.Scan(context.Background(), cursor, prefix+"*", 0).Result()
 		if err != nil {
 			return nil
 		}
 		for _, key := range res {
-			keyWithoutNamespace := key[len(namespace):]
+			keyWithoutNamespace := key[len(prefix):]
 			keys = append(keys, keyWithoutNamespace[1:])
 		}
 		cursor = newCursor
@@ -39,7 +39,7 @@ func getKeysByNamespace(redisClient *redis.Client, namespace string) []string {
 	return keys
 }
 
-func splitMessage(input, delimiter string) (string, string) {
+func SplitMessage(input, delimiter string) (string, string) {
 	parts := strings.SplitN(input, delimiter, 2)
 	if len(parts) == 2 {
 		return parts[0], parts[1]
