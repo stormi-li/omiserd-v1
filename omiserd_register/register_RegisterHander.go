@@ -32,7 +32,7 @@ func (registerHandler *RegisterHandler) Handle(register *Register) {
 		}
 		jsonStrData := omiutils.MapToJsonStr(register.Data)
 		key := register.prefix + register.ServerName + omiconst.Namespace_separator + register.Address
-		register.redisClient.Set(register.ctx, key, jsonStrData, omiconst.Config_expire_time)
+		register.RedisClient.Set(register.ctx, key, jsonStrData, omiconst.Config_expire_time)
 		time.Sleep(omiconst.Config_expire_time / 2)
 	}
 }

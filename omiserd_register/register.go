@@ -14,7 +14,7 @@ import (
 
 // Register 是服务注册和消息处理的核心结构
 type Register struct {
-	redisClient     *redis.Client     // Redis 客户端实例
+	RedisClient     *redis.Client     // Redis 客户端实例
 	ServerName      string            // 服务名
 	Address         string            // 服务地址（包含主机和端口）
 	Weight          int               // 服务权重
@@ -36,7 +36,7 @@ type Register struct {
 // 返回值：*Register
 func NewRegister(opts *redis.Options, serverName, address string, prefix string) *Register {
 	register := &Register{
-		redisClient:     redis.NewClient(opts), // 初始化 Redis 客户端
+		RedisClient:     redis.NewClient(opts), // 初始化 Redis 客户端
 		ServerName:      serverName,
 		Address:         address,
 		Data:            map[string]string{}, // 初始化空元数据
