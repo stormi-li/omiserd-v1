@@ -19,12 +19,13 @@ type Register struct {
 	Address         string            // 服务地址（包含主机和端口）
 	Weight          int               // 服务权重
 	Data            map[string]string // 服务的元数据，如权重、主机名等
-	prefix          string            // 命名空间前缀
-	channel         string            // Redis 发布/订阅使用的频道名
-	omipcClient     *omipc.Client     // omipc 客户端，用于异步通信
-	ctx             context.Context   // 上下文，用于 Redis 操作
-	registerHandler *RegisterHandler  // 注册处理器，管理服务注册逻辑
-	messageHandler  *MessageHandler   // 消息处理器，处理接收到的消息
+	NodeType        omiconst.NodeType
+	prefix          string           // 命名空间前缀
+	channel         string           // Redis 发布/订阅使用的频道名
+	omipcClient     *omipc.Client    // omipc 客户端，用于异步通信
+	ctx             context.Context  // 上下文，用于 Redis 操作
+	registerHandler *RegisterHandler // 注册处理器，管理服务注册逻辑
+	messageHandler  *MessageHandler  // 消息处理器，处理接收到的消息
 }
 
 // NewRegister 创建一个新的 Register 实例
@@ -34,13 +35,14 @@ type Register struct {
 // - address: 服务地址（格式为 "host:port"）
 // - prefix: 命名空间前缀
 // 返回值：*Register
-func NewRegister(opts *redis.Options, serverName, address string, prefix string) *Register {
+func NewRegister(opts *redis.Options, serverName, address string, prefix string, nodeType omiconst.NodeType) *Register {
 	register := &Register{
 		RedisClient:     redis.NewClient(opts), // 初始化 Redis 客户端
 		ServerName:      serverName,
 		Address:         address,
 		Data:            map[string]string{}, // 初始化空元数据
 		prefix:          prefix,
+		NodeType:        nodeType,
 		ctx:             context.Background(),     // 默认上下文
 		omipcClient:     omipc.NewClient(opts),    // 创建 omipc 客户端
 		registerHandler: newRegisterHandler(opts), // 创建服务注册处理器
@@ -93,7 +95,7 @@ func (register *Register) AddMessageHandleFunc(handleFunc func(command, message 
 // - serverFunc: 服务的启动函数，通常是一个 HTTP 或 TCP 服务器
 func (register *Register) RegisterAndServe(weight int, serverFunc func(port string)) {
 	register.Weight = weight
-	log.Printf("register server for %s[%s] is starting", register.ServerName, register.Address)
+	log.Printf("%s register server for %s[%s] is starting", string(register.NodeType), register.ServerName, register.Address)
 
 	// 启动服务注册逻辑和消息处理逻辑
 	go register.registerHandler.Handle(register)

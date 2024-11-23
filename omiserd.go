@@ -7,10 +7,10 @@ import (
 
 func NewClient(opts *redis.Options, nodeType omiconst.NodeType) *Client {
 	if nodeType == omiconst.Server {
-		return newClient(opts, omiconst.Prefix_Server)
+		return newClient(opts, omiconst.Prefix_Server, omiconst.Server)
 	}
 	if nodeType == omiconst.Web {
-		return newClient(opts, omiconst.Prefix_Web)
+		return newClient(opts, omiconst.Prefix_Web, omiconst.Web)
 	}
-	return newClient(opts, omiconst.Prefix_Config)
+	return newClient(opts, omiconst.Prefix_Config, omiconst.Config)
 }
