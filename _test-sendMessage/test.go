@@ -10,7 +10,7 @@ var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func main() {
-	omiC := omiserd.NewClient(&redis.Options{Addr: redisAddr, Password: password}, omiserd.Web)
-	r := omiC.NewRegister("web_service", "localhost:8080")
+	omiC := omiserd.NewClient(&redis.Options{Addr: redisAddr, Password: password}, omiconst.Web)
+	r := omiC.NewRegister("web_service", "localhost:8081")
 	r.SendMessage(omiconst.Command_update_weight, "3")
 }

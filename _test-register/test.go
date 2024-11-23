@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omiserd-v1"
@@ -15,17 +15,17 @@ var password = "12982397StrongPassw0rd"
 
 func main() {
 	omiC := omiserd.NewClient(&redis.Options{Addr: redisAddr, Password: password}, omiconst.Web)
-	// r := omiC.NewRegister("web_service", "localhost:8080")
-	// r.RegisterAndServe(1, func(port string) {})
+
 	r := omiC.NewRegister("web_service", "localhost:8181")
+
 	r.AddMessageHandleFunc(func(command, message string, register *register.Register) {
 		fmt.Println(command, message)
 	})
-	count := 0
+
 	r.AddRegisterHandleFunc(func(register *register.Register) {
-		register.Data["count"] = strconv.Itoa(count)
-		count++
+		register.Data["time"] = time.Now().String()
 	})
+
 	r.RegisterAndServe(1, func(port string) {})
 	select {}
 }
