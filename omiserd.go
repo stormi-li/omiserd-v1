@@ -2,15 +2,14 @@ package omiserd
 
 import (
 	"github.com/go-redis/redis/v8"
-	omiconst "github.com/stormi-li/omiserd-v1/omiserd_const"
 )
 
-func NewClient(opts *redis.Options, nodeType omiconst.NodeType) *Client {
-	if nodeType == omiconst.Server {
-		return newClient(opts, omiconst.Prefix_Server, omiconst.Server)
+func NewClient(opts *redis.Options, nodeType NodeType) *Client {
+	if nodeType == Server {
+		return newClient(opts, Prefix_Server, Server)
 	}
-	if nodeType == omiconst.Web {
-		return newClient(opts, omiconst.Prefix_Web, omiconst.Web)
+	if nodeType == Web {
+		return newClient(opts, Prefix_Web, Web)
 	}
-	return newClient(opts, omiconst.Prefix_Config, omiconst.Config)
+	return newClient(opts, Prefix_Config, Config)
 }
