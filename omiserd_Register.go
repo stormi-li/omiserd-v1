@@ -48,7 +48,7 @@ func NewRegister(opts *redis.Options, serverName, address string, prefix string,
 		omipcClient:     omipc.NewClient(opts),                               // 创建 omipc 客户端
 		registerHandler: newRegisterHandler(opts),                            // 创建服务注册处理器
 		messageHandler:  newMessageHander(opts),                              // 创建消息处理器
-		channel:         prefix + serverName + Namespace_separator + address, // 频道名称由前缀、服务名和地址拼接而成
+		channel:         prefix + serverName + namespace_separator + address, // 频道名称由前缀、服务名和地址拼接而成
 		startTime:       time.Now(),
 	}
 
@@ -115,5 +115,5 @@ func (register *Register) RegisterAndServe(weight int, serverFunc func(port stri
 // - command: 消息命令
 // - message: 消息内容
 func (register *Register) SendMessage(command string, message string) {
-	register.omipcClient.Notify(register.channel, command+Namespace_separator+message)
+	register.omipcClient.Notify(register.channel, command+namespace_separator+message)
 }

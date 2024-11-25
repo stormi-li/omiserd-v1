@@ -8,18 +8,18 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func MapToJsonStr(data map[string]string) string {
+func mapToJsonStr(data map[string]string) string {
 	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
 	return string(jsonStr)
 }
 
-func JsonStrToMap(jsonStr string) map[string]string {
+func jsonStrToMap(jsonStr string) map[string]string {
 	var dataMap map[string]string
 	json.Unmarshal([]byte(jsonStr), &dataMap)
 	return dataMap
 }
 
-func GetKeysByNamespace(redisClient *redis.Client, prefix string) []string {
+func getKeysByNamespace(redisClient *redis.Client, prefix string) []string {
 	var keys []string
 	cursor := uint64(0)
 	for {
@@ -39,7 +39,7 @@ func GetKeysByNamespace(redisClient *redis.Client, prefix string) []string {
 	return keys
 }
 
-func SplitMessage(input, delimiter string) (string, string) {
+func splitMessage(input, delimiter string) (string, string) {
 	parts := strings.SplitN(input, delimiter, 2)
 	if len(parts) == 2 {
 		return parts[0], parts[1]

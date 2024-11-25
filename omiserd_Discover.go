@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
-	omiconst "github.com/stormi-li/omiserd-v1/omiserd_const"
-	omiutils "github.com/stormi-li/omiserd-v1/omiserd_utils"
 )
 
 // Discover 是服务发现的核心结构
@@ -40,7 +38,7 @@ func (discover *Discover) Close() {
 // 返回值：[]string（服务实例的地址列表）
 func (discover *Discover) Get(serverName string) []string {
 	// 使用命名空间工具函数获取所有与服务名相关的键
-	return omiutils.GetKeysByNamespace(discover.redisClient, discover.prefix+serverName)
+	return getKeysByNamespace(discover.redisClient, discover.prefix+serverName)
 }
 
 // GetByWeight 根据权重获取服务实例地址池
@@ -77,14 +75,14 @@ func (discover *Discover) GetByWeight(serverName string) []string {
 // 返回值：map[string]string（实例数据）
 func (discover *Discover) GetData(serverName string, address string) map[string]string {
 	// 构造 Redis 键名并从 Redis 中获取值
-	key := discover.prefix + serverName + omiconst.Namespace_separator + address
+	key := discover.prefix + serverName + namespace_separator + address
 	dataStr, err := discover.redisClient.Get(discover.ctx, key).Result()
 	if err != nil {
 		return map[string]string{}
 	}
 
 	// 将 JSON 字符串转为 map
-	data := omiutils.JsonStrToMap(dataStr)
+	data := jsonStrToMap(dataStr)
 	return data
 }
 
@@ -108,12 +106,12 @@ func (discover *Discover) IsAlive(serverName string, address string) bool {
 // 返回值：map[string][]string（服务名 -> 实例地址列表的映射）
 func (discover *Discover) GetAll() map[string][]string {
 	// 获取与当前命名空间相关的所有键
-	keys := omiutils.GetKeysByNamespace(discover.redisClient, discover.prefix[:len(discover.prefix)-1])
+	keys := getKeysByNamespace(discover.redisClient, discover.prefix[:len(discover.prefix)-1])
 	result := map[string][]string{} // 存储结果
 
 	for _, key := range keys {
 		// 分割键名为服务名和地址
-		name, address := omiutils.SplitMessage(key, omiconst.Namespace_separator)
+		name, address := splitMessage(key, namespace_separator)
 
 		// 初始化服务名对应的地址列表（如果尚未存在）
 		if _, exists := result[name]; !exists {

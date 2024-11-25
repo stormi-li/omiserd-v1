@@ -23,7 +23,7 @@ func (messageHandler *MessageHandler) AddHandleFunc(command string, handleFunc f
 
 func (messageHandler *MessageHandler) Handle(channel string) {
 	messageHandler.ompcClient.Listen(channel, 0, func(message string) {
-		command, message := SplitMessage(message, Namespace_separator)
+		command, message := splitMessage(message, namespace_separator)
 		if handleFunc, ok := messageHandler.handleFuncs[command]; ok {
 			handleFunc(message)
 		}
