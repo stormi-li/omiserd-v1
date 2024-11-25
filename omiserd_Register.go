@@ -14,12 +14,12 @@ import (
 
 // Register 是服务注册和消息处理的核心结构
 type Register struct {
-	RedisClient     *redis.Client     // Redis 客户端实例
-	ServerName      string            // 服务名
-	Address         string            // 服务地址（包含主机和端口）
-	Weight          int               // 服务权重
+	redisClient     *redis.Client     // Redis 客户端实例
+	serverName      string            // 服务名
+	address         string            // 服务地址（包含主机和端口）
+	weight          int               // 服务权重
 	Data            map[string]string // 服务的元数据，如权重、主机名等
-	NodeType        NodeType
+	nodeType        NodeType
 	prefix          string           // 命名空间前缀
 	channel         string           // Redis 发布/订阅使用的频道名
 	omipcClient     *omipc.Client    // omipc 客户端，用于异步通信
@@ -38,12 +38,12 @@ type Register struct {
 // 返回值：*Register
 func NewRegister(opts *redis.Options, serverName, address string, prefix string, nodeType NodeType) *Register {
 	register := &Register{
-		RedisClient:     redis.NewClient(opts), // 初始化 Redis 客户端
-		ServerName:      serverName,
-		Address:         address,
+		redisClient:     redis.NewClient(opts), // 初始化 Redis 客户端
+		serverName:      serverName,
+		address:         address,
 		Data:            map[string]string{}, // 初始化空元数据
 		prefix:          prefix,
-		NodeType:        nodeType,
+		nodeType:        nodeType,
 		ctx:             context.Background(),                                // 默认上下文
 		omipcClient:     omipc.NewClient(opts),                               // 创建 omipc 客户端
 		registerHandler: newRegisterHandler(opts),                            // 创建服务注册处理器
@@ -54,7 +54,7 @@ func NewRegister(opts *redis.Options, serverName, address string, prefix string,
 
 	// 添加默认的注册逻辑处理函数
 	register.AddRegisterHandleFunc("weight", func() string {
-		return strconv.Itoa(register.Weight)
+		return strconv.Itoa(register.weight)
 	})
 	register.AddRegisterHandleFunc("process_id", func() string {
 		return strconv.Itoa(os.Getpid())
@@ -68,6 +68,13 @@ func NewRegister(opts *redis.Options, serverName, address string, prefix string,
 	})
 	register.AddRegisterHandleFunc("run_time", func() string {
 		return time.Since(register.startTime).String()
+	})
+	register.AddRegisterHandleFunc("message_handlers", func() string {
+		handlerNames := []string{}
+		for name := range register.messageHandler.handleFuncs {
+			handlerNames = append(handlerNames, name)
+		}
+		return strings.Join(handlerNames, ", ")
 	})
 
 	// 添加消息权重修改回调函数
@@ -95,18 +102,18 @@ func (register *Register) AddMessageHandleFunc(command string, handleFunc func(m
 // - weight: 服务权重
 // - serverFunc: 服务的启动函数，通常是一个 HTTP 或 TCP 服务器
 func (register *Register) RegisterAndServe(weight int, serverFunc func(port string)) {
-	register.Weight = weight
-	log.Printf("%s register server for %s[%s] is starting", string(register.NodeType), register.ServerName, register.Address)
+	register.weight = weight
+	log.Printf("%s register server for %s[%s] is starting", string(register.nodeType), register.serverName, register.address)
 
 	// 启动服务注册逻辑和消息处理逻辑
 	go register.registerHandler.Handle(register)
 	go register.messageHandler.Handle(register.channel)
 
 	// 提取端口号并调用服务启动函数
-	if parts := strings.Split(register.Address, ":"); len(parts) == 2 {
+	if parts := strings.Split(register.address, ":"); len(parts) == 2 {
 		serverFunc(":" + parts[1])
 	} else {
-		log.Fatalf("invalid address format: %s", register.Address)
+		log.Fatalf("invalid address format: %s", register.address)
 	}
 }
 
@@ -116,4 +123,9 @@ func (register *Register) RegisterAndServe(weight int, serverFunc func(port stri
 // - message: 消息内容
 func (register *Register) SendMessage(command string, message string) {
 	register.omipcClient.Notify(register.channel, command+namespace_separator+message)
+}
+
+func (register *Register) Close() {
+	register.redisClient.Close()
+	register.omipcClient.Close()
 }

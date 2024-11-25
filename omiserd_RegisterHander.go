@@ -29,8 +29,8 @@ func (registerHandler *RegisterHandler) Handle(register *Register) {
 			register.Data[key] = handleFunc()
 		}
 		jsonStrData := mapToJsonStr(register.Data)
-		key := register.prefix + register.ServerName + namespace_separator + register.Address
-		register.RedisClient.Set(register.ctx, key, jsonStrData, config_expire_time)
+		key := register.prefix + register.serverName + namespace_separator + register.address
+		register.redisClient.Set(register.ctx, key, jsonStrData, config_expire_time)
 		time.Sleep(config_expire_time / 2)
 	}
 }
